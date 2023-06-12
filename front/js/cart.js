@@ -33,10 +33,11 @@ async function showBasket() {
   const responseFetch = await fetchApi();
   const basketValue = JSON.parse(localStorage.getItem("product"));
   if (basketValue !== null && basketValue.length !== 0) {
+    const cartArea = document.querySelector("#cart__items");
     responseFetch.forEach((product) => { //injection dynamique
-      document.querySelector("#cart__items").innerHTML += `<article class="cart__item" data-id="${product._id}" data-color="${product.color}">
+      cartArea.innerHTML += `<article class="cart__item" data-id="${product._id}" data-color="${product.color}">
             <div class="cart__item__img">
-              <img src="${product.img}" alt="Photographie d'un canapé">
+              <img src="${product.imageUrl}" alt="Photographie d'un canapé">
             </div>
             <div class="cart__item__content">
               <div class="cart__item__content__description">
