@@ -1,5 +1,9 @@
 const basketValue = JSON.parse(localStorage.getItem("product"));
-// déclaration de la fonction du fetch pour accèder aux infos hors scope
+
+// Ici nous appelons les fonctions
+initialize();
+
+// déclaration de la fonction du fetch pour accéder aux infos hors scope
 async function fetchApi() {
   let basketArrayFull = []; // tableau vide qui va contenir les objets créés en suite
   let basketClassFull = JSON.parse(localStorage.getItem("product"));
@@ -11,17 +15,9 @@ async function fetchApi() {
       )
         .then((res) => res.json())
         .then((kanap) => {
-          const article = {
-            // création d'un objet qui va recueillir les infos nécessaires pour la suite
-            _id: kanap._id,
-            name: kanap.name,
-            price: kanap.price,
-            color: basketClassFull[i].colorSelectedProduct,
-            quantity: basketClassFull[i].quantity,
-            alt: kanap.altTxt,
-            img: kanap.imageUrl,
-          };
-          basketArrayFull.push(article); // Ajout de la const article au tableau
+          kanap.color = basketClassFull[i].colorSelectedProduct,
+          kanap.quantity = basketClassFull[i].quantity,
+          basketArrayFull.push(kanap); // Ajout de la const article au tableau
         })
         .catch(function (err) {
           console.log(err);
@@ -31,14 +27,14 @@ async function fetchApi() {
   return basketArrayFull;
 }
 
+
 // Fonction d'affichage du panier grâce à l'injection dynamique des produits côté HTML
 async function showBasket() {
   const responseFetch = await fetchApi();
   const basketValue = JSON.parse(localStorage.getItem("product"));
   if (basketValue !== null && basketValue.length !== 0) {
-    const cartPage = document.querySelector("#cart__items");
     responseFetch.forEach((product) => { //injection dynamique
-      cartPage.innerHTML += `<article class="cart__item" data-id="${product._id}" data-color="${product.color}">
+      document.querySelector("#cart__items").innerHTML += `<article class="cart__item" data-id="${product._id}" data-color="${product.color}">
             <div class="cart__item__img">
               <img src="${product.img}" alt="Photographie d'un canapé">
             </div>
@@ -73,8 +69,7 @@ function getBasket() { // Fonction qui va permettre de récupérer le LS
 
 async function modifyQuantity() {
   await fetchApi(); //on attend que le fetch soit terminé
-  const quantityInCart = document.querySelectorAll(".itemQuantity");
-  for (let input of quantityInCart) {
+  for (let input of document.querySelectorAll(".itemQuantity")) {
     input.addEventListener("change", function () {
       // écoute si changement de quantité
       let basketValue = getBasket();
@@ -105,9 +100,8 @@ async function modifyQuantity() {
 
 // Supprimer des kanaps dans le panier
 async function removeItem() {
-  await fetchApi();
-  const kanapDelete = document.querySelectorAll(".deleteItem"); // Création d'un tableau en selectionnant les boutons supprimer
-  kanapDelete.forEach((article) => {
+  await fetchApi(); 
+  document.querySelectorAll(".deleteItem").forEach((article) => {
     article.addEventListener("click", function (event) {
       let basketValue = getBasket();
       // On récupère l'ID de la donnée qui a été modifiée
@@ -123,8 +117,7 @@ async function removeItem() {
       );
       basketValue = basketValue.filter((item) => item != searchDeleteKanap); // Ensuite on filtre le LS avec l'élément comme modèle
       localStorage.setItem("product", JSON.stringify(basketValue));
-      const getSection = document.querySelector("#cart__items");
-      getSection.removeChild(event.target.closest("article")); // On supprime l'élément 
+      document.querySelector("#cart__items").removeChild(event.target.closest("article")); // On supprime l'élément 
       alert("article supprimé !");
       calculTotalQuantity();
       calculTotalPrice(); //Mise à jour des quantités et prix dynamiquement
@@ -137,14 +130,10 @@ async function removeItem() {
 }
 removeItem();
 
-
-// Ici nous initalisons les fonctions
-initialize();
-
 async function initialize() {
   showBasket(); // Affichage du DOM (Document Object Model)
   removeItem(); // Suppression dynamique des kanaps du panier
-  modifyQuantity(); // MOdification dynamique des quantités
+  modifyQuantity(); // Modification dynamique des quantités
 
   calculTotalQuantity(); // Mise à jour dynamique des quantités et prix totaux
   calculTotalPrice();
@@ -153,12 +142,13 @@ async function initialize() {
 
 // Message du panier vide
 function messageEmptyCart() {
-  const cartTitle = document.querySelector(
-    "#limitedWidthBlock div.cartAndFormContainer > h1"
-  ); // Emplacement du message
   const emptyCartMessage = "Votre panier est vide !";
-  cartTitle.textContent = emptyCartMessage;
-  cartTitle.style.fontSize = "40px";
+  document.querySelector(
+    "#limitedWidthBlock div.cartAndFormContainer > h1"
+  ).textContent = emptyCartMessage;
+  document.querySelector(
+    "#limitedWidthBlock div.cartAndFormContainer > h1"
+  ).style.fontSize = "40px";
 
   document.querySelector(".cart__order").style.display = "none"; // Masque le formulaire si panier vide
   document.querySelector(".cart__price").style.display = "none"; // Masque le prix total si panier vide
@@ -166,7 +156,6 @@ function messageEmptyCart() {
 
 function calculTotalQuantity() {
   let basketValue = getBasket();
-  const totalQuantityArea = document.querySelector("#totalQuantity");
   let quantityInBasket = []; // création d'un tableau vide pour accumuler les qtés
   if (basketValue === null || basketValue.length === 0) {
     messageEmptyCart();
@@ -174,7 +163,7 @@ function calculTotalQuantity() {
     for (let kanap of basketValue) {
       quantityInBasket.push(parseInt(kanap.quantity));//push des qtés
       const reducer = (accumulator, currentValue) => accumulator + currentValue; // addition des objets du tableau par reduce
-      totalQuantityArea.textContent = quantityInBasket.reduce(reducer, 0);//valeur initiale à 0 pour eviter erreur quand panier vide
+      document.querySelector("#totalQuantity").textContent = quantityInBasket.reduce(reducer, 0);//valeur initiale à 0 pour eviter erreur quand panier vide
     }
   }
 }
@@ -182,7 +171,6 @@ function calculTotalQuantity() {
 async function calculTotalPrice() {
   const responseFetch = await fetchApi();
   let basketValue = getBasket();
-  const totalPriceArea = document.querySelector("#totalPrice");
   finalTotalPrice = [];
   for (let i = 0; i < responseFetch.length; i++) { //produit du prix unitaire et de la quantité
     let subTotal =
@@ -190,7 +178,7 @@ async function calculTotalPrice() {
     finalTotalPrice.push(subTotal);
 
     const reducer = (accumulator, currentValue) => accumulator + currentValue; // addition des prix du tableau par reduce
-    totalPriceArea.textContent = finalTotalPrice.reduce(reducer, 0); //valeur initiale à 0 pour eviter erreur quand panier vide
+    document.querySelector("#totalPrice").textContent = finalTotalPrice.reduce(reducer, 0); //valeur initiale à 0 pour eviter erreur quand panier vide
     localStorage.setItem("product", JSON.stringify(basketValue));
   }
 }
@@ -294,16 +282,17 @@ orderButtonArea.addEventListener("click", function (e) {
 
       // récupération de l'ID de commande après fetch POST vers API   
 
-      const orderId = fetch("http://localhost:3000/api/products/order", {
+      fetch("http://localhost:3000/api/products/order", {
         method: "POST",
         body: JSON.stringify(finalOrderObject),
         headers: {
           "Content-type": "application/json",
         },
-      });
-      orderId.then(async function (response) {
+      })
+      .then(async function (response) {
         // réponse de l'API //
         const reply = await response.json();
+        console.log(reply);
         //renvoi vers la page de confirmation avec l'ID de commande 
         window.location.href = `confirmation.html?orderId=${reply.orderId}`;
       });
