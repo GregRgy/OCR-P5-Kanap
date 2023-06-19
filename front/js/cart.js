@@ -69,31 +69,28 @@ function getBasket() { // Fonction qui va permettre de récupérer le LS
 }
 
 async function modifyQuantity() {
-  await fetchApi(); //on attend que le fetch soit terminé
+  await fetchApi();
   for (let input of document.querySelectorAll(".itemQuantity")) {
     input.addEventListener("change", function () {
-      // écoute si changement de quantité
       let basketValue = getBasket();
-      // On récupère l'ID lorsque la donnée est modifiée
-      let idModif = this.closest(".cart__item").dataset.id;
-      // On récupère la couleur lorsque la donnée est modifiée
-      let colorModif = this.closest(".cart__item").dataset.color;
-      // On "filtre le LS avec l'ID du kanap qui a été modifié"
-      let findId = basketValue.filter((e) => e.idSelectedProduct === idModif);
-      // Enfin on recherche ce kanap avec ce même ID que l'on choisit par sa couleur
-      let findColor = findId.find((e) => e.colorSelectedProduct === colorModif);
-      if (this.value > 0) {
-        // Si la couleur et l'ID sont finalement trouvés alors on modifie la quantité de ce kanap
-        findColor.quantity = this.value;
-        //  On push le panier dans le LS pour terminer
+      const newQuantity = parseFloat(input.value);
+      const idModif = this.closest(".cart__item").dataset.id;
+      const colorModif = this.closest(".cart__item").dataset.color;
+      const findItem = basketValue.find(
+        (item) =>
+          item.idSelectedProduct === idModif &&
+          item.colorSelectedProduct === colorModif
+      );
+
+      if (newQuantity > 0 && newQuantity <= 100 && Number.isInteger(newQuantity)) {
+        findItem.quantity = newQuantity;
         localStorage.setItem("product", JSON.stringify(basketValue));
         calculTotalQuantity();
         calculTotalPrice();
       } else {
-        calculTotalQuantity();
-        calculTotalPrice();
+        alert("La quantité d'un article (même référence et même couleur) doit être comprise entre 1 et 100 et être un nombre entier. Merci de rectifier la quantité choisie.");
+        input.value = findItem.quantity;
       }
-      localStorage.setItem("product", JSON.stringify(basketValue));
     });
   }
 }
@@ -190,22 +187,84 @@ removeItem();
 // Le panier est push dans le localStorage
 localStorage.setItem("product", JSON.stringify(basketValue));
 
-// Ecoute sur le bouton commander
-
 const orderButtonArea = document.querySelector("#order");
 
-// écoute du clic sur le bouton COMMANDER //
+// Déclaration des différentes zones d'input
+const inputFirstName = document.getElementById("firstName");
+const inputLastName = document.getElementById("lastName");
+const inputAddress = document.getElementById("address");
+const inputCity = document.getElementById("city");
+const inputEmail = document.getElementById("email");
+
+// Déclaration des messages d'erreur
+const firstNameErrorMessage = document.querySelector("#firstNameErrorMsg");
+const lastNameErrorMessage = document.querySelector("#lastNameErrorMsg");
+const addressErrorMessage = document.querySelector("#addressErrorMsg");
+const cityErrorMessage = document.querySelector("#cityErrorMsg");
+const emailErrorMessage = document.querySelector("#emailErrorMsg");
+
+// Ecoute du changement de valeur dans inputFirstName
+inputFirstName.addEventListener("input", function () {
+  const regexFirstName = /^[a-zA-Z]+(?:[\s-][a-zA-Z]+)*$/;
+
+  if (regexFirstName.test(inputFirstName.value) === false || inputFirstName.value === "") {
+    firstNameErrorMessage.innerHTML = "Merci de renseigner un prénom conforme";
+  } else {
+    firstNameErrorMessage.innerHTML = ""; // Réinitialiser le message d'erreur
+  }
+});
+
+// Ecoute du changement de valeur dans inputLastName
+inputLastName.addEventListener("input", function () {
+  const regexLastName = /^[a-zA-Z]+(?:[\s-][a-zA-Z]+)*$/;
+
+  if (regexLastName.test(inputLastName.value) === false || inputLastName.value === "") {
+    lastNameErrorMessage.innerHTML = "Merci de renseigner un nom de famille conforme";
+  } else {
+    lastNameErrorMessage.innerHTML = ""; // Réinitialiser le message d'erreur
+  }
+});
+
+// Ecoute du changement de valeur dans inputAddress
+inputAddress.addEventListener("input", function () {
+  const regexAddress = /^[#.0-9a-zA-ZÀ-ÿ\s',-]{2,60}$/;
+
+  if (regexAddress.test(inputAddress.value) === false || inputAddress.value === "") {
+    addressErrorMessage.innerHTML =
+      "Veuillez renseigner une adresse conforme (Voie, nom de la voie, numéro, code postal)";
+  } else {
+    addressErrorMessage.innerHTML = ""; // Réinitialiser le message d'erreur
+  }
+});
+
+// Ecoute du changement de valeur dans inputCity
+inputCity.addEventListener("input", function () {
+  const regexCity = /^[a-zA-Z]+(?:[\s-][a-zA-Z]+)*$/;
+
+  if (regexCity.test(inputCity.value) === false || inputCity.value === "") {
+    cityErrorMessage.innerHTML = "Veuillez renseigner un nom de ville conforme";
+  } else {
+    cityErrorMessage.innerHTML = ""; // Réinitialiser le message d'erreur
+  }
+});
+
+// Ecoute du changement de valeur dans inputEmail
+inputEmail.addEventListener("input", function () {
+  const regexEmail =
+    /^[_a-z0-9-]+(.[_a-z0-9-]+)*@[a-z0-9-]+(.[a-z0-9-]+)*(.[a-z]{2,4})$/;
+
+  if (regexEmail.test(inputEmail.value) === false || inputEmail.value === "") {
+    emailErrorMessage.innerHTML = "Veuillez renseigner une adresse mail conforme";
+  } else {
+    emailErrorMessage.innerHTML = ""; // Réinitialiser le message d'erreur
+  }
+});
+
+// écoute du clic sur le bouton COMMANDER
 orderButtonArea.addEventListener("click", function (e) {
-  e.preventDefault();// on empeche le formulaire de fonctionner par defaut si aucun contenu
+  e.preventDefault(); // on empêche le formulaire de fonctionner par défaut si aucun contenu
 
-  // déclaration des différentes zones d'input
-  const inputFirstName = document.getElementById("firstName");
-  const inputLastName = document.getElementById("lastName");
-  const inputAddress = document.getElementById("address");
-  const inputCity = document.getElementById("city");
-  const inputEmail = document.getElementById("email");
-
-  // recupération des inputs du formulaire //
+  // Récupération des valeurs des champs du formulaire
   let checkFirstName = inputFirstName.value;
   let checkLastName = inputLastName.value;
   let checkAddress = inputAddress.value;
@@ -213,14 +272,6 @@ orderButtonArea.addEventListener("click", function (e) {
   let checkEmail = inputEmail.value;
 
   function orderValidation() {
-    let basketValue = getBasket();
-    
-    const firstNameErrorMessage = document.querySelector("#firstNameErrorMsg");
-    const lastNameErrorMessage = document.querySelector("#lastNameErrorMsg");
-    const addressErrorMessage = document.querySelector("#addressErrorMsg");
-    const cityErrorMessage = document.querySelector("#cityErrorMsg");
-    const emailErrorMessage = document.querySelector("#emailErrorMsg");
-
     const regexFirstName = /^[a-zA-Z]+(?:[\s-][a-zA-Z]+)*$/;
     const regexLastName = regexFirstName;
     const regexAddress = /^[#.0-9a-zA-ZÀ-ÿ\s',-]{2,60}$/;
@@ -228,36 +279,40 @@ orderButtonArea.addEventListener("click", function (e) {
     const regexEmail =
       /^[_a-z0-9-]+(.[_a-z0-9-]+)*@[a-z0-9-]+(.[a-z0-9-]+)*(.[a-z]{2,4})$/;
 
-    // si une erreur est trouvée, un message est retourné et la valeur false également
-    if (
-      regexFirstName.test(checkFirstName) == false ||
-      checkFirstName === null
-    ) {
-      firstNameErrorMessage.innerHTML =
-        "Merci de renseigner un prénom conforme";
-      return false;
-    } else if (
-      regexLastName.test(checkLastName) == false ||
-      checkLastName === null
-    ) {
-      lastNameErrorMessage.innerHTML =
-        "Merci de renseigner un nom de famille conforme";
-      return false;
-    } else if (regexAddress.test(checkAddress) == false || checkAddress === null) {
+    // Réinitialiser les messages d'erreur
+    firstNameErrorMessage.innerHTML = "";
+    lastNameErrorMessage.innerHTML = "";
+    addressErrorMessage.innerHTML = "";
+    cityErrorMessage.innerHTML = "";
+    emailErrorMessage.innerHTML = "";
+
+    // Vérifier les validations des champs et afficher les messages d'erreur
+    let isValid = true;
+    if (regexFirstName.test(checkFirstName) === false || checkFirstName === "") {
+      firstNameErrorMessage.innerHTML = "Merci de renseigner un prénom conforme";
+      isValid = false;
+    }
+    if (regexLastName.test(checkLastName) === false || checkLastName === "") {
+      lastNameErrorMessage.innerHTML = "Merci de renseigner un nom de famille conforme";
+      isValid = false;
+    }
+    if (regexAddress.test(checkAddress) === false || checkAddress === "") {
       addressErrorMessage.innerHTML =
         "Veuillez renseigner une adresse conforme (Voie, nom de la voie, numéro, code postal)";
-      return false;
-    } else if (regexCity.test(checkCity) == false || checkCity === null) {
-      cityErrorMessage.innerHTML =
-        "Veuillez renseigner un nom de ville conforme";
-      return false;
-    } else if (regexEmail.test(checkEmail) == false || checkEmail === null) {
-      emailErrorMessage.innerHTML =
-        "Veuillez renseigner une adresse mail conforme";
-      return false;
-      // si tous les champs du formulaire sont correctement remplis
-    } else {
-      // on crée un objet contact pour l'envoi par l'API 
+      isValid = false;
+    }
+    if (regexCity.test(checkCity) === false || checkCity === "") {
+      cityErrorMessage.innerHTML = "Veuillez renseigner un nom de ville conforme";
+      isValid = false;
+    }
+    if (regexEmail.test(checkEmail) === false || checkEmail === "") {
+      emailErrorMessage.innerHTML = "Veuillez renseigner une adresse mail conforme";
+      isValid = false;
+    }
+
+    // Si tous les champs du formulaire sont correctement remplis
+    if (isValid) {
+      // On crée un objet contact pour l'envoi par l'API
       let contact = {
         firstName: checkFirstName,
         lastName: checkLastName,
@@ -266,23 +321,19 @@ orderButtonArea.addEventListener("click", function (e) {
         email: checkEmail,
       };
 
-      // on crée un tableau vide qui va récupérer les articles du panier à envoyer à l'API 
-
+      // On crée un tableau vide qui va récupérer les articles du panier à envoyer à l'API
       let products = [];
 
-      // la requête POST ne prend en compte QUE l'ID des produits du panier 
-      // On ne push donc QUE les ID des canapés du panier dans le tableau créé 
-
+      // La requête POST ne prend en compte QUE l'ID des produits du panier
+      // On ne push donc QUE les ID des canapés du panier dans le tableau créé
       for (let kanapId of basketValue) {
         products.push(kanapId.idSelectedProduct);
       }
 
-      // on crée l'objet contenant les infos de la commande 
-
+      // On crée l'objet contenant les infos de la commande
       let finalOrderObject = { contact, products };
 
-      // récupération de l'ID de commande après fetch POST vers API   
-
+      // Récupération de l'ID de commande après fetch POST vers API
       fetch("http://localhost:3000/api/products/order", {
         method: "POST",
         body: JSON.stringify(finalOrderObject),
@@ -290,14 +341,18 @@ orderButtonArea.addEventListener("click", function (e) {
           "Content-type": "application/json",
         },
       })
-      .then(async function (response) {
-        // réponse de l'API //
-        const reply = await response.json();
-        console.log(reply);
-        //renvoi vers la page de confirmation avec l'ID de commande 
-        window.location.href = `confirmation.html?orderId=${reply.orderId}`;
-      });
+        .then(async function (response) {
+          // Réponse de l'API
+          const reply = await response.json();
+          console.log(reply);
+          // Renvoi vers la page de confirmation avec l'ID de commande
+          window.location.href = `confirmation.html?orderId=${reply.orderId}`;
+        })
+        .catch(function (error) {
+          console.log("Erreur lors de la requête POST :", error);
+        });
     }
   }
+
   orderValidation();
 });

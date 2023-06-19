@@ -23,15 +23,15 @@ fetch(`http://localhost:3000/api/products/${kanapPageId}`)
 
 const button = document.getElementById("addToCart");
 
+
 button.addEventListener("click", () => {
+  const quantityInput = document.querySelector("#quantity");
+  const quantityValue = Number(quantityInput.value);
   if (document.querySelector("#colors").value === "") {
     alert("Veuillez choisir une couleur, SVP");
   }
   // Si la quantité choisie est nulle ou si elle dépasse 100
-  else if (
-    document.querySelector("#quantity").value <= 0 ||
-    document.querySelector("#quantity").value > 100
-  ) {
+  else if (!Number.isInteger(quantityValue) || quantityValue <= 0 || quantityValue > 100) {
     alert("Veuillez choisir une quantité corecte");
   } else {
     // Si tout est bon alors on envoie le panier au LocalStorage
